@@ -1,23 +1,10 @@
 <template>
   <div id="app">
     <div>
-      <input
-        type="file"
-        :disabled="status !== Status.wait"
-        @change="handleFileChange"
-      />
-      <el-button @click="handleUpload" :disabled="uploadDisabled"
-        >上传</el-button
-      >
-      <el-button @click="handleResume" v-if="status === Status.pause"
-        >恢复</el-button
-      >
-      <el-button
-        v-else
-        :disabled="status !== Status.uploading || !container.hash"
-        @click="handlePause"
-        >暂停</el-button
-      >
+      <input type="file" :disabled="status !== Status.wait" @change="handleFileChange" />
+      <el-button @click="handleUpload" :disabled="uploadDisabled">上传</el-button>
+      <el-button @click="handleResume" v-if="status === Status.pause">恢复</el-button>
+      <el-button v-else :disabled="status !== Status.uploading || !container.hash" @click="handlePause">暂停</el-button>
     </div>
     <div>
       <div>计算文件 hash</div>
@@ -26,11 +13,7 @@
       <el-progress :percentage="fakeUploadPercentage"></el-progress>
     </div>
     <el-table :data="data">
-      <el-table-column
-        prop="hash"
-        label="切片hash"
-        align="center"
-      ></el-table-column>
+      <el-table-column prop="hash" label="切片hash" align="center"></el-table-column>
       <el-table-column label="大小(KB)" align="center" width="120">
         <template v-slot="{ row }">
           {{ row.size | transformByte }}
