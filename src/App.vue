@@ -1,10 +1,23 @@
 <template>
   <div id="app">
     <div>
-      <input type="file" :disabled="status !== Status.wait" @change="handleFileChange" />
-      <el-button @click="handleUpload" :disabled="uploadDisabled">上传</el-button>
-      <el-button @click="handleResume" v-if="status === Status.pause">恢复</el-button>
-      <el-button v-else :disabled="status !== Status.uploading || !container.hash" @click="handlePause">暂停</el-button>
+      <input
+        type="file"
+        :disabled="status !== Status.wait"
+        @change="handleFileChange"
+      />
+      <el-button @click="handleUpload" :disabled="uploadDisabled"
+        >上传</el-button
+      >
+      <el-button @click="handleResume" v-if="status === Status.pause"
+        >恢复</el-button
+      >
+      <el-button
+        v-else
+        :disabled="status !== Status.uploading || !container.hash"
+        @click="handlePause"
+        >暂停</el-button
+      >
     </div>
     <div>
       <div>计算文件 hash</div>
@@ -13,7 +26,11 @@
       <el-progress :percentage="fakeUploadPercentage"></el-progress>
     </div>
     <el-table :data="data">
-      <el-table-column prop="hash" label="切片hash" align="center"></el-table-column>
+      <el-table-column
+        prop="hash"
+        label="切片hash"
+        align="center"
+      ></el-table-column>
       <el-table-column label="大小(KB)" align="center" width="120">
         <template v-slot="{ row }">
           {{ row.size | transformByte }}
@@ -28,10 +45,13 @@
         </template>
       </el-table-column>
     </el-table>
+    <oss></oss>
   </div>
 </template>
 
 <script>
+import Oss from "@/Oss.vue";
+
 const SIZE = 10 * 1024 * 1024; // 切片大小
 
 const Status = {
@@ -42,6 +62,7 @@ const Status = {
 
 export default {
   name: "app",
+  components: { Oss },
   filters: {
     transformByte(val) {
       return Number((val / 1024).toFixed(0));
@@ -176,12 +197,16 @@ export default {
         this.container.file.name,
         this.container.hash
       );
+      console.log(
+        "shouldUpload=" + shouldUpload + ", uploadedList=" + uploadedList
+      );
+      console.log("fileChunkList[0].file=" + fileChunkList[0].file);
       if (!shouldUpload) {
         this.$message.success("秒传：上传成功");
         this.status = Status.wait;
         return;
       }
-
+      console.log("start process file chunk list");
       this.data = fileChunkList.map(({ file }, index) => ({
         fileHash: this.container.hash,
         index,
@@ -190,7 +215,7 @@ export default {
         size: file.size,
         percentage: uploadedList.includes(index) ? 100 : 0
       }));
-
+      console.log("data=" + this.data);
       await this.uploadChunks(uploadedList);
     },
     // 上传切片，同时过滤已上传的切片
@@ -207,7 +232,7 @@ export default {
         })
         .map(async ({ formData, index }) =>
           this.request({
-            url: "http://localhost:3000",
+            url: "http://47.108.199.150:3000/upload_slice",
             data: formData,
             onProgress: this.createProgressHandler(this.data[index]),
             requestList: this.requestList
@@ -223,7 +248,7 @@ export default {
     // 通知服务端合并切片
     async mergeRequest() {
       await this.request({
-        url: "http://localhost:3000/merge",
+        url: "http://47.108.199.150:3000/merge",
         headers: {
           "content-type": "application/json"
         },
@@ -240,7 +265,7 @@ export default {
     // 没有才进行上传
     async verifyUpload(filename, fileHash) {
       const { data } = await this.request({
-        url: "http://localhost:3000/verify",
+        url: "http://47.108.199.150:3000/verify",
         headers: {
           "content-type": "application/json"
         },
